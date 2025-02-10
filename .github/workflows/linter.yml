@@ -1,13 +1,13 @@
+---
 name: Lint
 
 on: # yamllint disable-line rule:truthy
-  push: null
   pull_request:
     branches:
       - master
       - develop
 
-permissions: {}
+permissions: { }
 
 jobs:
   build:

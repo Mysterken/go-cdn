@@ -17,6 +17,9 @@ RUN go build -o go-cdn main.go
 # Use a minimal base image for the final container
 FROM alpine:3.21
 
+# Create a new user and group
+RUN addgroup -S gocdn-group && adduser -S gocdn-user -G gocdn-group
+
 # Set the working directory inside the container
 WORKDIR /app
 
@@ -26,8 +29,18 @@ COPY --from=builder /app/go-cdn /app/go-cdn
 # Copy static files from the host (ensure /static exists)
 COPY ../static /app/static
 
+# Change ownership of the application files to the new user
+RUN chown -R gocdn-user:gocdn-group /app
+
+# Switch to the new user
+USER gocdn-user
+
 # Expose port 8080
 EXPOSE 8080
+
+# Add HEALTHCHECK instruction
+#HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+#  CMD ["wget", "--spider", "http://localhost:8080/health"]
 
 # Start the application
 CMD ["/app/go-cdn"]
