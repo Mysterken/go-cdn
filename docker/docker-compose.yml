@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  cdn:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: go-cdn
+    ports:
+      - "8080:8080"
+    volumes:
+      - ../static:/app/static  # Mount the local static folder into the container
+    environment:
+      - GO_ENV=production
+    restart: unless-stopped
