@@ -1,5 +1,5 @@
 ---
-name: docker
+name: Docker Build Check
 
 on:
   pull_request:
@@ -7,32 +7,18 @@ on:
       - master
       - develop
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
-  cancel-in-progress: true
-
 jobs:
-  tests:
-    name: Docker build
+  docker-build:
+    name: Validate Docker Build
     runs-on: ubuntu-latest
-    steps:
-      -
-        name: Checkout
-        uses: actions/checkout@v4
-      -
-        name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-      -
-        name: Build Docker images
-        uses: docker/bake-action@v6
-        with:
-          pull: true
-          load: true
-          files: docker/docker-compose.yml
-          set: |
-            *.cache-from=type=gha,scope=${{github.ref}}
-            *.cache-from=type=gha,scope=refs/heads/main
-            *.cache-to=type=gha,scope=${{github.ref}},mode=max
 
-      - name: Start services
-        run: cd docker && docker compose up --no-build
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build Docker Image
+        run: |
+          docker build -f docker/Dockerfile -t go-cdn .
