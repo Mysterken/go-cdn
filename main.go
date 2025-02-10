@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"sync"
 	"time"
 )
@@ -50,7 +50,7 @@ func (c *Cache) getFile(path string) ([]byte, error) {
 	}
 
 	// Read from the disk
-	data, err := ioutil.ReadFile(path)
+	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +68,10 @@ func serveStaticFiles(c *Cache) http.HandlerFunc {
 		// Handle health check separately
 		if r.URL.Path == "/health" {
 			w.WriteHeader(http.StatusOK)
-			_, _ = w.Write([]byte("OK"))
+			if _, err := w.Write([]byte("OK")); err != nil {
+				http.Error(w, "Failed to write response", http.StatusInternalServerError)
+				return
+			}
 			return
 		}
 
@@ -84,8 +87,7 @@ func serveStaticFiles(c *Cache) http.HandlerFunc {
 
 		// Serve the file content
 		w.Header().Set("Content-Type", "application/octet-stream")
-		_, err = w.Write(data)
-		if err != nil {
+		if _, err := w.Write(data); err != nil {
 			http.Error(w, "Failed to write response", http.StatusInternalServerError)
 			return
 		}
@@ -99,7 +101,15 @@ func main() {
 	// Serve static files with caching
 	http.HandleFunc("/", serveStaticFiles(cache))
 
-	// Start the server on port 8080
+	// Create a custom server with timeouts
+	server := &http.Server{
+		Addr:         ":8080",
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		IdleTimeout:  15 * time.Second,
+	}
+
+	// Start the server
 	fmt.Println("Starting CDN server on http://localhost:8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(server.ListenAndServe())
 }
