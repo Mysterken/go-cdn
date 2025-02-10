@@ -1,0 +1,24 @@
+---
+name: Docker Build Check
+
+on:
+  pull_request:
+    branches:
+      - master
+      - develop
+
+jobs:
+  docker-build:
+    name: Validate Docker Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker Image
+        run: |
+          docker build -f docker/Dockerfile -t go-cdn .
