@@ -39,8 +39,8 @@ USER gocdn-user
 EXPOSE 8080
 
 # Add HEALTHCHECK instruction
-#HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-#  CMD ["wget", "--spider", "http://localhost:8080/health"]
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD ["wget", "--spider", "http://localhost:8080/health"]
 
 # Start the application
 CMD ["/app/go-cdn"]
