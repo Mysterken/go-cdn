@@ -2,20 +2,97 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"sync"
+	"time"
 )
 
-// TIP <p>To run your code, right-click the code and select <b>Run</b>.</p> <p>Alternatively, click
-// the <icon src="AllIcons.Actions.Execute"/> icon in the gutter and select the <b>Run</b> menu item from here.</p>
+// Cache structure
+type Cache struct {
+	mu      sync.RWMutex
+	data    map[string][]byte
+	expires map[string]time.Time
+	ttl     time.Duration
+}
+
+func newCache(ttl time.Duration) *Cache {
+	return &Cache{
+		data:    make(map[string][]byte),
+		expires: make(map[string]time.Time),
+		ttl:     ttl,
+	}
+}
+
+// Retrieve a file from the cache or fetch it from the disk
+func (c *Cache) getFile(path string) ([]byte, error) {
+	c.mu.RLock()
+	// Check if file is in cache and not expired
+	if data, found := c.data[path]; found {
+		if time.Now().Before(c.expires[path]) {
+			c.mu.RUnlock()
+			return data, nil
+		}
+	}
+
+	c.mu.RUnlock()
+
+	// Cache miss or expired, read the file from disk
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	// Check again after acquiring the lock
+	if data, found := c.data[path]; found {
+		if time.Now().Before(c.expires[path]) {
+			return data, nil
+		}
+	}
+
+	// Read from the disk
+	data, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	// Store in cache with TTL
+	c.data[path] = data
+	c.expires[path] = time.Now().Add(c.ttl)
+
+	return data, nil
+}
+
+// Handle HTTP requests and serve static files
+func serveStaticFiles(c *Cache) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Determine the file path
+		filePath := "." + r.URL.Path // assuming files are served from the current directory
+
+		// Try to get file from cache
+		data, err := c.getFile(filePath)
+		if err != nil {
+			http.Error(w, "File not found", http.StatusNotFound)
+			return
+		}
+
+		// Serve the file content
+		w.Header().Set("Content-Type", "application/octet-stream")
+		_, err = w.Write(data)
+		if err != nil {
+			http.Error(w, "Failed to write response", http.StatusInternalServerError)
+			return
+		}
+	}
+}
 
 func main() {
-	// TIP <p>Press <shortcut actionId="ShowIntentionActions"/> when your caret is at the underlined text
-	// to see how GoLand suggests fixing the warning.</p><p>Alternatively, if available, click the lightbulb to view possible fixes.</p>
-	s := "gopher"
-	fmt.Printf("Hello and welcome, %s!\n", s)
+	// Create a cache with a TTL of 10 seconds
+	cache := newCache(10 * time.Second)
 
-	for i := 1; i <= 5; i++ {
-		// TIP <p>To start your debugging session, right-click your code in the editor and select the Debug option.</p> <p>We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-		// for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.</p>
-		fmt.Println("i =", 100/i)
-	}
+	// Serve static files with caching
+	http.HandleFunc("/", serveStaticFiles(cache))
+
+	// Start the server on port 8080
+	fmt.Println("Starting CDN server on http://localhost:8080")
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
