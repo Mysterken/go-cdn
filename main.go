@@ -65,6 +65,13 @@ func (c *Cache) getFile(path string) ([]byte, error) {
 // Handle HTTP requests and serve static files
 func serveStaticFiles(c *Cache) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		// Handle health check separately
+		if r.URL.Path == "/health" {
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte("OK"))
+			return
+		}
+
 		// Determine the file path
 		filePath := "." + r.URL.Path // assuming files are served from the current directory
 
