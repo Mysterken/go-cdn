@@ -14,6 +14,11 @@ jobs:
     name: Validate Docker Build
     runs-on: ubuntu-latest
 
+    permissions:
+        contents: read
+        packages: read
+        statuses: write
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
