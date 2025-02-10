@@ -1,3 +1,4 @@
+---
 version: '3.8'
 
 services:
@@ -9,7 +10,7 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - ../static:/app/static  # Mount the local static folder into the container
+      - ../static:/app/static # Mount the local static folder into the container
     environment:
       - GO_ENV=production
     restart: unless-stopped
