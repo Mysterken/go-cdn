@@ -28,8 +28,8 @@ jobs:
         with:
           pull: true
           load: true
-          progress: plain  # Ensure logs are visible
           files: docker/docker-compose.yml
+          targets: go-cdn
           set: |
             *.cache-from=type=gha,scope=${{github.ref}}
             *.cache-from=type=gha,scope=refs/heads/main
