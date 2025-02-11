@@ -103,6 +103,9 @@ func main() {
 
 	// Enregistrer la route pour télécharger cat.jpg
 	http.HandleFunc("/upload", DownloadCat)
+
+	// Enregistrer la route dynamique pour télécharger des images
+	http.HandleFunc("/download/", DownloadImage)
 	// Create a custom server with timeouts
 
 	server := &http.Server{
