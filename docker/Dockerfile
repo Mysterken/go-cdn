@@ -12,7 +12,7 @@ RUN go mod tidy
 COPY ../ ./
 
 # Build the Go application
-RUN go build -o go-cdn main.go
+RUN go build -o go-cdn *.go
 
 # Use a minimal base image for the final container
 FROM alpine:3.21
