@@ -101,7 +101,10 @@ func main() {
 	// Serve static files with caching
 	http.HandleFunc("/", serveStaticFiles(cache))
 
+	// Enregistrer la route pour télécharger cat.jpg
+	http.HandleFunc("/upload", DownloadCat)
 	// Create a custom server with timeouts
+
 	server := &http.Server{
 		Addr:         ":8080",
 		ReadTimeout:  5 * time.Second,
