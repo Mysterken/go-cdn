@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"go-cdn/routes"
 	"log"
 	"net/http"
 	"time"
@@ -47,10 +48,10 @@ func main() {
 	http.HandleFunc("/", serveStaticFiles(cache))
 
 	// Enregistrer la route pour télécharger cat.jpg
-	http.HandleFunc("/upload", DownloadCat)
+	http.HandleFunc("/upload", routes.DownloadCat)
 
 	// Enregistrer la route dynamique pour télécharger des images
-	http.HandleFunc("/download/", DownloadImage)
+	http.HandleFunc("/download/", routes.DownloadImage)
 	// Create a custom server with timeouts
 
 	server := &http.Server{
