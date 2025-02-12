@@ -1,4 +1,4 @@
-package main
+package cache
 
 import (
 	"container/list"
@@ -23,9 +23,9 @@ type CacheEntry struct {
 }
 
 // NewLRUCache initializes an LRU cache
-func NewLRUCache(cap int) *LRUCache {
+func NewLRUCache(capa int) *LRUCache {
 	return &LRUCache{
-		capacity: cap,
+		capacity: capa,
 		cache:    make(map[string]*list.Element),
 		eviction: list.New(),
 	}
@@ -98,7 +98,7 @@ type Cache struct {
 	ttl time.Duration
 }
 
-func newCache(capacity int, ttl time.Duration) *Cache {
+func NewCache(capacity int, ttl time.Duration) *Cache {
 	return &Cache{
 		lru: NewLRUCache(capacity),
 		ttl: ttl,
@@ -106,7 +106,7 @@ func newCache(capacity int, ttl time.Duration) *Cache {
 }
 
 // Retrieve a file from the cache or fetch it from the disk
-func (c *Cache) getFile(path string) ([]byte, error) {
+func (c *Cache) GetFile(path string) ([]byte, error) {
 	// Try to get from LRU cache
 	if data, found := c.lru.Get(path); found {
 		return data, nil
