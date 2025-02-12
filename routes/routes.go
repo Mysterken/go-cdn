@@ -1,5 +1,4 @@
-// routes/routes.go
-package main
+package routes
 
 import (
 	"log"
