@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"go-cdn/cache"
 	"go-cdn/routes"
 	"log"
 	"net/http"
@@ -10,7 +9,7 @@ import (
 )
 
 // Handle HTTP requests and serve static files
-func serveStaticFiles(c *cache.Cache) http.HandlerFunc {
+func serveStaticFiles(c *Cache) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Health check
 		if r.URL.Path == "/health" {
@@ -26,7 +25,7 @@ func serveStaticFiles(c *cache.Cache) http.HandlerFunc {
 		filePath := "." + r.URL.Path
 
 		// Get file from cache or disk
-		data, err := c.GetFile(filePath)
+		data, err := c.getFile(filePath)
 		if err != nil {
 			http.Error(w, "File not found", http.StatusNotFound)
 			return
@@ -43,7 +42,7 @@ func serveStaticFiles(c *cache.Cache) http.HandlerFunc {
 
 func main() {
 	// Create an LRU cache with capacity of 100 items and TTL of 30 seconds
-	lruCache := cache.NewCache(100, 30*time.Second)
+	lruCache := newCache(100, 30*time.Second)
 
 	// Serve static files with caching
 	http.HandleFunc("/", serveStaticFiles(lruCache))

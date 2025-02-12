@@ -1,4 +1,4 @@
-package cache
+package main
 
 import (
 	"container/list"
@@ -15,8 +15,8 @@ type LRUCache struct {
 	eviction *list.List
 }
 
-// CacheEntry stores key-value and expiration time
-type CacheEntry struct {
+// Entry stores key-value and expiration time
+type Entry struct {
 	key        string
 	value      []byte
 	expiration time.Time
@@ -37,7 +37,7 @@ func (l *LRUCache) Get(key string) ([]byte, bool) {
 	defer l.mu.Unlock()
 
 	if element, found := l.cache[key]; found {
-		entry := element.Value.(*CacheEntry)
+		entry := element.Value.(*Entry)
 
 		// Check if expired
 		if time.Now().After(entry.expiration) {
@@ -60,7 +60,7 @@ func (l *LRUCache) Put(key string, value []byte, ttl time.Duration) {
 	// If already exists, update & move to front
 	if element, found := l.cache[key]; found {
 		l.eviction.MoveToFront(element)
-		entry := element.Value.(*CacheEntry)
+		entry := element.Value.(*Entry)
 		entry.value = value
 		entry.expiration = time.Now().Add(ttl)
 		return
@@ -72,7 +72,7 @@ func (l *LRUCache) Put(key string, value []byte, ttl time.Duration) {
 	}
 
 	// Insert new entry at front
-	entry := &CacheEntry{key, value, time.Now().Add(ttl)}
+	entry := &Entry{key, value, time.Now().Add(ttl)}
 	element := l.eviction.PushFront(entry)
 	l.cache[key] = element
 }
@@ -87,7 +87,7 @@ func (l *LRUCache) removeOldest() {
 
 // removeElement deletes an element from cache
 func (l *LRUCache) removeElement(element *list.Element) {
-	entry := element.Value.(*CacheEntry)
+	entry := element.Value.(*Entry)
 	delete(l.cache, entry.key)
 	l.eviction.Remove(element)
 }
@@ -98,7 +98,7 @@ type Cache struct {
 	ttl time.Duration
 }
 
-func NewCache(capacity int, ttl time.Duration) *Cache {
+func newCache(capacity int, ttl time.Duration) *Cache {
 	return &Cache{
 		lru: NewLRUCache(capacity),
 		ttl: ttl,
@@ -106,7 +106,7 @@ func NewCache(capacity int, ttl time.Duration) *Cache {
 }
 
 // Retrieve a file from the cache or fetch it from the disk
-func (c *Cache) GetFile(path string) ([]byte, error) {
+func (c *Cache) getFile(path string) ([]byte, error) {
 	// Try to get from LRU cache
 	if data, found := c.lru.Get(path); found {
 		return data, nil
