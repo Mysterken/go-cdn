@@ -47,13 +47,16 @@ func main() {
 	// Serve static files with caching
 	http.HandleFunc("/", serveStaticFiles(lruCache))
 
-	// Enregistrer la route pour télécharger cat.jpg
+	// Upload a file
 	http.HandleFunc("/upload", routes.DownloadCat)
 
-	// Enregistrer la route dynamique pour télécharger des images
+	// Download a file
 	http.HandleFunc("/download/", routes.DownloadImage)
-	// Create a custom server with timeouts
 
+	// List files
+	http.HandleFunc("/files", routes.FileManager)
+
+	// Create a custom server with timeouts
 	server := &http.Server{
 		Addr:         ":8080",
 		ReadTimeout:  5 * time.Second,
