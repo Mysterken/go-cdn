@@ -47,10 +47,6 @@ func main() {
 	// Serve static files with caching
 	http.HandleFunc("/", serveStaticFiles(lruCache))
 
-	// Handler racine personnalisé : si l'URL est "/" on sert index.html,
-	// sinon on utilise serveStaticFiles pour les autres fichiers.
-	http.HandleFunc("/index.html", serveStaticFiles(cache))
-
 	// Upload a file
 	http.HandleFunc("/upload", routes.DownloadCat)
 
@@ -58,7 +54,7 @@ func main() {
 	http.HandleFunc("/download/", routes.DownloadImage)
 
 	// List files
-	http.HandleFunc("/files", fileManager)
+	http.HandleFunc("/files", routes.FileManager)
 
 	// Create a custom server with timeouts
 	server := &http.Server{

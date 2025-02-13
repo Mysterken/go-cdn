@@ -61,7 +61,7 @@ func DownloadImage(w http.ResponseWriter, r *http.Request) {
 }
 
 // fileManager gère la route /files pour créer, modifier ou supprimer des fichiers.
-func fileManager(w http.ResponseWriter, r *http.Request) {
+func FileManager(w http.ResponseWriter, r *http.Request) {
 	// Définir le dossier de stockage
 	filesDir := "files"
 
