@@ -101,13 +101,20 @@ func main() {
 	// Serve static files with caching
 	http.HandleFunc("/", serveStaticFiles(cache))
 
-	// Enregistrer la route pour télécharger cat.jpg
+	// Handler racine personnalisé : si l'URL est "/" on sert index.html,
+	// sinon on utilise serveStaticFiles pour les autres fichiers.
+	http.HandleFunc("/index.html", serveStaticFiles(cache))
+
+	// Upload a file
 	http.HandleFunc("/upload", DownloadCat)
 
-	// Enregistrer la route dynamique pour télécharger des images
+	// Download a file
 	http.HandleFunc("/download/", DownloadImage)
-	// Create a custom server with timeouts
 
+	// List files
+	http.HandleFunc("/files", fileManager)
+
+	// Create a custom server with timeouts
 	server := &http.Server{
 		Addr:         ":8080",
 		ReadTimeout:  5 * time.Second,
