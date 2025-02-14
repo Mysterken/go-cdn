@@ -5,6 +5,7 @@ import (
 	"go-cdn/routes"
 	"log"
 	"net/http"
+	"path/filepath"
 	"time"
 )
 
@@ -44,19 +45,28 @@ func main() {
 	// Create an LRU cache with capacity of 100 items and TTL of 30 seconds
 	lruCache := newCache(100, 30*time.Second)
 
-	// Serve static files with caching
-	http.HandleFunc("/", serveStaticFiles(lruCache))
-
-	// Upload a file
-	http.HandleFunc("/upload", routes.DownloadCat)
+	// Handler racine personnalisé : si l'URL est "/" ou "/index.html", on sert index.html,
+	// sinon on sert les autres fichiers via serveStaticFiles.
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/" || r.URL.Path == "/index.html" {
+			imageName := filepath.Base(r.URL.Path[len("index.html"):])
+			filePath := filepath.Join("", imageName)
+			http.ServeFile(w, r, filePath)
+			return
+		}
+		serveStaticFiles(lruCache)(w, r)
+	})
+	// Enregistrer la route pour télécharger cat.jpg
+	http.HandleFunc("/api/upload", routes.DownloadCat)
 
 	// Download a file
-	http.HandleFunc("/download/", routes.DownloadImage)
-
-	// List files
-	http.HandleFunc("/files", routes.FileManager)
+	http.HandleFunc("/api/download/", routes.DownloadImage)
 
 	// Create a custom server with timeouts
+
+	// Route pour créer, modifier ou supprimer des fichiers
+	http.HandleFunc("/api/files", routes.FileManager)
+
 	server := &http.Server{
 		Addr:         ":8080",
 		ReadTimeout:  5 * time.Second,
