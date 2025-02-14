@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"sync"
 	"time"
 )
@@ -98,15 +99,26 @@ func main() {
 	// Create a cache with a TTL of 10 seconds
 	cache := newCache(10 * time.Second)
 
-	// Serve static files with caching
-	http.HandleFunc("/", serveStaticFiles(cache))
-
+	// Handler racine personnalisé : si l'URL est "/" ou "/index.html", on sert index.html,
+	// sinon on sert les autres fichiers via serveStaticFiles.
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/" || r.URL.Path == "/index.html" {
+			imageName := filepath.Base(r.URL.Path[len("index.html"):])
+			filePath := filepath.Join("", imageName)
+			http.ServeFile(w, r, filePath)
+			return
+		}
+		serveStaticFiles(cache)(w, r)
+	})
 	// Enregistrer la route pour télécharger cat.jpg
 	http.HandleFunc("/upload", DownloadCat)
 
 	// Enregistrer la route dynamique pour télécharger des images
 	http.HandleFunc("/download/", DownloadImage)
 	// Create a custom server with timeouts
+
+	// Route pour créer, modifier ou supprimer des fichiers
+	http.HandleFunc("/api/files", fileManager)
 
 	server := &http.Server{
 		Addr:         ":8080",
