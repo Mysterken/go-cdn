@@ -29,7 +29,7 @@ func NewRedisClient() *redis.Client {
 	return client
 }
 
-// Stocker une valeur dans Redis
+// Stocke 
 func SetCache(client *redis.Client, key string, value string, expiration time.Duration) {
 	err := client.Set(ctx, key, value, expiration).Err()
 	if err != nil {
@@ -37,7 +37,7 @@ func SetCache(client *redis.Client, key string, value string, expiration time.Du
 	}
 }
 
-// Récupérer une valeur depuis Redis
+// Récupére 
 func GetCache(client *redis.Client, key string) string {
 	val, err := client.Get(ctx, key).Result()
 	if err == redis.Nil {
@@ -53,7 +53,7 @@ func GetCache(client *redis.Client, key string) string {
 func main() {
 	client := NewRedisClient()
 
-	// Stocker et récupérer un test
+	// Test
 	SetCache(client, "cdn:test", "Hello Redis!", 10*time.Second)
 	val := GetCache(client, "cdn:test")
 	fmt.Println("Valeur récupérée depuis Redis :", val)
