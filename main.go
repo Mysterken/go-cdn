@@ -57,7 +57,7 @@ func main() {
 		serveStaticFiles(lruCache)(w, r)
 	})
 	// Enregistrer la route pour télécharger cat.jpg
-	http.HandleFunc("/upload", DownloadCat)
+	http.HandleFunc("/upload", routes.DownloadCat)
 
 	// Download a file
 	http.HandleFunc("/download/", routes.DownloadImage)
@@ -65,7 +65,7 @@ func main() {
 	// Create a custom server with timeouts
 
 	// Route pour créer, modifier ou supprimer des fichiers
-	http.HandleFunc("/api/files", fileManager)
+	http.HandleFunc("/api/files", routes.FileManager)
 
 	server := &http.Server{
 		Addr:         ":8080",
