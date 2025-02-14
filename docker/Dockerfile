@@ -1,20 +1,20 @@
-# Use the official Go image as a build environment
+# Utiliser l'image officielle Go comme environnement de construction
 FROM golang:1.23-alpine AS builder
 
-# Set the working directory inside the container
+# Définir le répertoire de travail dans le conteneur
 WORKDIR /app
 
-# Copy the Go module files and install dependencies
-COPY ../go.mod ./
+# Copier les fichiers de module Go et installer les dépendances
+COPY go.mod go.sum ./
 RUN go mod tidy
 
-# Copy the application files
-COPY ../ ./
+# Copier les fichiers de l'application
+COPY . .
 
 # Build the Go application
 RUN go build -o go-cdn *.go
 
-# Use a minimal base image for the final container
+# Utiliser une image de base minimale pour le conteneur final
 FROM alpine:3.21
 
 # Create a new user and group
@@ -23,11 +23,14 @@ RUN addgroup -S gocdn-group && adduser -S gocdn-user -G gocdn-group
 # Set the working directory inside the container
 WORKDIR /app
 
-# Copy the built binary from the builder stage
+# Copier le binaire construit à partir de l'étape de construction
 COPY --from=builder /app/go-cdn /app/go-cdn
 
-# Copy static files from the host (ensure /static exists)
-COPY ../static /app/static
+# Copier les fichiers statiques depuis l'hôte (assurez-vous que /static existe)
+COPY static /app/static
+
+# Changer le propriétaire des fichiers de l'application pour le nouvel utilisateur
+RUN chown -R gocdn-user:gocdn-group /app
 
 # Change ownership of the application files to the new user
 RUN chown -R gocdn-user:gocdn-group /app
