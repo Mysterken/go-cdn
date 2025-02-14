@@ -114,7 +114,7 @@ func main() {
 	// Create a custom server with timeouts
 
 	server := &http.Server{
-		Addr:         ":8080",
+		Addr:         ":8082",
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  15 * time.Second,
@@ -145,8 +145,19 @@ func main() {
 	}
 
 	// Check if "filesCache" exists in the list
-	_, err = client.Database("filesCache").ListCollectionNames(ctx, nil)
-	if err == nil {
+	var exists = false
+	databases, err := client.ListDatabaseNames(ctx, bson.M{})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, name := range databases {
+		if name == "filesCache" {
+			exists = true
+		}
+	}
+
+	if !exists {
 		db := client.Database("filesCache")
 
 		files := db.Collection("file")
@@ -159,6 +170,6 @@ func main() {
 	}
 
 	// Start the server
-	fmt.Println("Starting CDN server on http://localhost:8080")
+	fmt.Println("Starting CDN server on http://localhost:8082")
 	log.Fatal(server.ListenAndServe())
 }
