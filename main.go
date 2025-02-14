@@ -1,12 +1,17 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"sync"
 	"time"
+
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 // Cache structure
@@ -113,6 +118,44 @@ func main() {
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  15 * time.Second,
+	}
+
+	// Create a context with a timeout
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// Set credentials
+	credential := options.Credential{
+		Username: "root",
+		Password: "example",
+	}
+	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017/").SetAuth(credential)
+
+	// Connect to MongoDb
+	client, err := mongo.Connect(ctx, clientOptions)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer client.Disconnect(ctx)
+
+	// Ping the database to verify the connection
+	err = client.Ping(ctx, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Check if "filesCache" exists in the list
+	_, err = client.Database("filesCache").ListCollectionNames(ctx, nil)
+	if err == nil {
+		db := client.Database("filesCache")
+
+		files := db.Collection("file")
+		file := bson.D{{Key: "pathName", Value: "empty.png"}}
+
+		_, err := files.InsertOne(ctx, file)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	// Start the server
