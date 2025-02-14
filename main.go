@@ -4,14 +4,13 @@ import (
 	"context"
 	"fmt"
 	"go-cdn/routes"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
 	"net/http"
 	"path/filepath"
 	"time"
-
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 // Handle HTTP requests and serve static files
@@ -88,7 +87,9 @@ func main() {
 		Username: "root",
 		Password: "example",
 	}
-	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017/").SetAuth(credential)
+
+	// Use "mongo" instead of "localhost" because it's the service name in docker-compose
+	clientOptions := options.Client().ApplyURI("mongodb://root:example@mongo:27017/").SetAuth(credential)
 
 	// Connect to MongoDb
 	client, err := mongo.Connect(ctx, clientOptions)
