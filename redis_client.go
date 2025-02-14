@@ -50,7 +50,7 @@ func GetCache(client *redis.Client, key string) string {
 	return val
 }
 
-func main() {
+func main_redis() {
 	client := NewRedisClient()
 
 	// Test
