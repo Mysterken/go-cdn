@@ -29,7 +29,16 @@ func DownloadCat(w http.ResponseWriter, r *http.Request) {
 
 // DownloadImage permet de télécharger dynamiquement une image depuis le dossier static.
 func DownloadImage(w http.ResponseWriter, r *http.Request) {
-	prefix := "/download/"
+	prefix := "/api/download/"
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
+	// Répondre tout de suite aux requêtes OPTIONS (pré-vol)
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
 	if len(r.URL.Path) <= len(prefix) {
 		http.Error(w, "Nom de l'image non fourni", http.StatusBadRequest)
 		return
@@ -37,7 +46,7 @@ func DownloadImage(w http.ResponseWriter, r *http.Request) {
 
 	// Extraire et sécuriser le nom de l'image
 	imageName := filepath.Base(r.URL.Path[len(prefix):])
-	filePath := filepath.Join("static", imageName)
+	filePath := filepath.Join("files", imageName)
 
 	// Vérifier que le fichier existe
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
